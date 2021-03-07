@@ -212,10 +212,10 @@ window.onload = function(){
     document.getElementById("canvas").addEventListener('mousemove', (e)=> {
         if(mouseDown){
             if(lastMouseX !== 0){
-                cameraX = Math.round(cameraX + (lastMouseX - e.pageX)/zoomLevel);
+                cameraX = cameraX + (lastMouseX - e.pageX)/zoomLevel;
             }
             if(lastMouseY !== 0){
-                cameraY = Math.round(cameraY + (lastMouseY - e.pageY)/zoomLevel);
+                cameraY = cameraY + (lastMouseY - e.pageY)/zoomLevel;
             }
             // if(lastMouseX !== 0 || lastMouseX !== 0){
 

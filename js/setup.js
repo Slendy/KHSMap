@@ -43,7 +43,7 @@ function setupFloor1(){
     addDestination(1, new Destination(2861.3333333333335, 1678.6666666666667, 100));
 
     addTravelPoint(1, new TravelPoint(3007, 1752, [1]));
-    addTravelPoint(1, new TravelPoint(2924, 1759, [0,2]));
+    addTravelPoint(1, new TravelPoint(2860, 1759, [0,2]));
     addTravelPoint(1, new TravelPoint(2787, 1760, [1,3]));
     addTravelPoint(1, new TravelPoint(2623, 1766, [2,4]));
     addTravelPoint(1, new TravelPoint(2548, 1771, [3,5]));

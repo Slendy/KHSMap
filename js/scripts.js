@@ -318,54 +318,64 @@ window.onload = function(){
 
         let endingRoom = document.getElementById("roomdest");
         endingRoom = parseInt(endingRoom.value);
-
-        if(isNaN(endingRoom) || getFloor(endingRoom) === -1){
-            displayError("You must enter a number for destination", 3000);
+        if(isNaN(endingRoom)){
+            displayError("You must enter a room number", 3000);
             document.getElementById("roomdest").classList.add("invalid");
-           return;
-        } else {
-            let validRoom = false;
-            for(let i = 0; i < floors[getFloor(endingRoom)-1].destinations.length; i++){
-                if(floors[getFloor(endingRoom)-1].destinations[i].number === endingRoom){
-                    validRoom = true;
-                }
-            }
-            if(!validRoom){
-                displayError("Room number " + endingRoom + " does not exist", 3000);
-                document.getElementById("roomdest").classList.add("invalid");
-                return;
-            }
-            document.getElementById("roomdest").classList.remove("invalid");
+            return;
         }
-        //TODO if origin room is bad then start from entrance
+
+        if(!doesRoomExist(endingRoom)){
+            displayError("Unable to find destination room " + endingRoom, 3000);
+            document.getElementById("roomdest").classList.add("invalid");
+            return;
+        }
+
+        // if(isNaN(endingRoom) || getFloor(endingRoom) === -1){
+        //     displayError("You must enter a number for destination", 3000);
+        //     document.getElementById("roomdest").classList.add("invalid");
+        //    return;
+        // } else {
+        //     let validRoom = false;
+        //     for(let i = 0; i < floors[getFloor(endingRoom)-1].destinations.length; i++){
+        //         if(floors[getFloor(endingRoom)-1].destinations[i].number === endingRoom){
+        //             validRoom = true;
+        //         }
+        //     }
+        //     if(!validRoom){
+        //         displayError("Room number " + endingRoom + " does not exist", 3000);
+        //         document.getElementById("roomdest").classList.add("invalid");
+        //         return;
+        //     }
+        //     document.getElementById("roomdest").classList.remove("invalid");
+        // }
 
         let startingRoom = document.getElementById("roomstart")
         startingRoom = parseInt(startingRoom.value);
-        if(startingRoom === endingRoom){
-            displayError("Starting room must be different than ending room", 3000);
+        if(!startingRoom.value || startingRoom.value.length === 0){
+            startingRoom = 100;
+        }
+        if(!doesRoomExist(startingRoom)){
+            displayError("Unable to find starting room " + startingRoom, 3000);
+            document.getElementById("roomstart").classList.add("invalid");
             return;
         }
-        let valid = false;
-        if(!isNaN(startingRoom)){
-            for(let i = 0; i < floors[getFloor(startingRoom)-1].destinations.length; i++){
-                if(floors[getFloor(startingRoom)-1].destinations[i].number === startingRoom){
-                    valid = true;
-                }
-            }
-        }
-        if(isNaN(startingRoom) || !valid){
-            startingRoom = 100;
+
+        if(startingRoom === endingRoom){
+            displayError("Starting room must be different than ending room", 3000);
+            document.getElementById("roomstart").classList.add("invalid");
+            return;
         }
 
         document.getElementById("startroute").classList.remove("btn-success")
         document.getElementById("startroute").classList.add("btn-danger")
         document.getElementById("startroute").innerText = "STOP";
         document.getElementById("startroute").style = "padding: 0 .5em"
+        document.getElementById("roomstart").classList.remove("invalid")
+        document.getElementById("roomdest").classList.remove("invalid")
 
         answers = [[], [], [], []];
         pathsToTake = [[], [], [], []]
         //if starting room is 0 then route from the rotunda front door
-        // console.log("start route");
         // route will be represented by an array of point indexes to take
         // but how to store different paths across floors?
         // 4 length index each index is the floor (0 = floor 1...)
@@ -382,11 +392,9 @@ window.onload = function(){
         let startingFloorNum = getFloor(startingRoom);
 
 
-
-        // console.log("dest floor: " + destinationFloorNum + ", start floor: " + startingFloorNum);
-
         startingPoint = findClosestPoint(roomOrigin);
 
+        // snap camera to starting point
         setFloor(startingFloorNum)
         zoomLevel = 1.7;
         let viewportWidth = canvas.width / zoomLevel;
@@ -407,10 +415,7 @@ window.onload = function(){
             let lowestDst = Infinity;
             let lowestDstOrder = [];
             if(curFloor !== destinationFloorNum){//find some mf stairs
-                // endingPoint = findClosestStairWeighted(startingPoint, endingPoint, startingFloorNum);
                 endingPoint = findClosestStair(roomDestination, startingFloorNum);
-                // console.log("finding some stairs - " + endingPoint);
-                // console.log(endingPoint);
             } else {
                 endingPoint = findClosestPoint(roomDestination);
             }
@@ -422,6 +427,7 @@ window.onload = function(){
                 // stairs only have 1 point connecting to them
                 let shouldAddStair = false;
                 let stairRef;
+                // dumb workaround i dont remember why
                 if(startingPoint.isStair){
                     shouldAddStair = true;
                     stairRef = startingPoint;
@@ -429,7 +435,6 @@ window.onload = function(){
                 }
                 for(let i = 0; i < startingPoint.moves.length; i++){
                     // go through possible moves
-                    // console.log("moving from startingpoint on floor " + curFloor)
                     // keep track of where we have visited so we dont waste time revisiting
                     let visited = new Array(floors[curFloor-1].travelPoints.length).fill(false);
                     visited[getPointIndex(startingPoint, curFloor)] = true;
@@ -441,16 +446,7 @@ window.onload = function(){
                     }
                     visit_order[visit_order.length] = getPointIndex(startingPoint, curFloor)
 
-                    let result = exploreDirection(visited, startingPoint, startingPoint.moves[i], visit_order, endingPoint, floors[curFloor-1], 0);
-                    if(result){
-                        // console.log("function returned dst of " + result.dst);
-                    }
-
-                    // if(result && result.dst < lowestDst){
-                    //     lowestDstOrder = result.order;
-                    //     lowestDst = result.dst;
-                    // }
-                    //for multi floor
+                    exploreDirection(visited, startingPoint, startingPoint.moves[i], visit_order, endingPoint, floors[curFloor-1], 0);
                 }
                 for(let i = 0; i < answers[curFloor-1].length; i++){
                     let result = answers[curFloor-1][i];
@@ -468,13 +464,7 @@ window.onload = function(){
 
             pathsToTake[curFloor-1] = lowestDstOrder;
             curFloor = destinationFloorNum;
-            // startingPoint = findClosestStairWeighted(startingPoint, endingPoint, curFloor);
             startingPoint = findClosestStair(endingPoint, destinationFloorNum);
-            // console.log("CLOSEST STAIR: " + startingPoint)
-            // console.log("NEW STARTING POINT: ")
-            // console.log(startingPoint);
-
-            // console.log("lowestdst = " + lowestDst);
         }
 
 
@@ -542,12 +532,12 @@ function findMinDist(startArr, destinstionArr){
 // floor the current floor
 // totalDistance a recursive counter
 function exploreDirection(visited, from, index_to_visit, visit_order, ending_point, floor, totalDistance){
+    // workaround for when you go up or down stairs and the destination is the
+    // point connecting directly to the stair
     if(from === ending_point){
-        // console.log("from === ending_point", from, ending_point);
         answers[floor.number-1][answers[floor.number-1].length] = {dst: totalDistance, order: visit_order};
         return {dst: totalDistance, order: visit_order};
     }
-    // console.log("dest=" + getPointIndex(ending_point, floor.number) + " visiting index: " + index_to_visit + " from " + (getPointIndex(from, floor.number) === -1 ? "origin" : getPointIndex(from, floor.number)));
     // p is point we travelled to
     let p = floor.travelPoints[index_to_visit];
     // we add it to the list of visited points
@@ -558,8 +548,7 @@ function exploreDirection(visited, from, index_to_visit, visit_order, ending_poi
     totalDistance += getDistance(from, p);
     //if this point is the ending point we return the distance and order
     if(p === ending_point){
-        // console.log("WE REACHED THE DESTINATION POINT (" + getPointIndex(ending_point, floor.number) + ")");
-        // console.log(totalDistance);
+        // hacky workaround cause recursive wasn't returning the right values
         answers[floor.number-1][answers[floor.number-1].length] = {dst: totalDistance, order: visit_order};
         return {dst: totalDistance, order: visit_order};
     }
@@ -567,48 +556,12 @@ function exploreDirection(visited, from, index_to_visit, visit_order, ending_poi
     for(let i = 0; i < p.moves.length; i++){
         if(visited[p.moves[i]])
             continue;
+        // clone the what points we have visited and the order so that the data we give to the following
+        // branch isn't from this search
         let visitedClone = [...visited];
         let visit_orderClone = [...visit_order];
-        // console.log(visit_orderClone);
         exploreDirection(visitedClone, p, p.moves[i], visit_orderClone, ending_point, floor, totalDistance);
     }
-
-
-    // let overrideIndex = -1;
-    // if(p.moves.length > 1){//there is a split
-    //     let lowestDistance = Infinity;
-    //     let lowestDistanceIndex = -1;
-    //     let totalBranches = 0;
-    //     for(let i = 0; i < p.moves.length; i++){
-    //         if(visited[p.moves[i]]) {
-    //             continue;
-    //         }
-    //         totalBranches++;
-    //         let dist = getDistance(floor.travelPoints[p.moves[i]], ending_point);
-    //
-    //         if(dist < lowestDistance){
-    //             lowestDistanceIndex = p.moves[i];
-    //             lowestDistance = dist;
-    //         }
-    //     }
-    //     if(totalBranches > 1){
-    //         overrideIndex = lowestDistanceIndex;
-    //     }
-    //     console.log("BRANCH DETECTED, TAKE INDEX " + lowestDistanceIndex);
-    // }
-    // if(overrideIndex === -1) {
-    //     for (let i = 0; i < p.moves.length; i++) {
-    //         if (visited[p.moves[i]]) {// dont visit somewhere we already went
-    //             console.log("already visited " + p.moves[i])
-    //             continue;
-    //         }
-    //         // should go all the way back up the stack of recursive calls
-    //         return exploreDirection(visited, p, p.moves[i], visit_order, ending_point, floor, totalDistance);
-    //     }
-    // } else {
-    //     return exploreDirection(visited, p, overrideIndex, visit_order, ending_point, floor, totalDistance)
-    // }
-
 }
 
 function findClosestPoint(room){
@@ -636,6 +589,20 @@ function getRoom(num){
         }
     }
     return rooms;
+}
+
+function doesRoomExist(num){
+    if(getFloor(num) === -1)
+        return false;
+    let floor = floors[getFloor(num)-1];
+
+    let valid = false;
+    for(let i = 0; i < floor.destinations.length; i++){
+        if(floor.destinations[i].number === num){
+            valid = true;
+        }
+    }
+    return valid;
 }
 
 function getDistance(p1, p2){
@@ -735,7 +702,7 @@ function initialize(){
 
 function getFloor(roomNumber){
     if(roomNumber <= 99 || roomNumber >= 1100){
-        console.log("getFloor(): room number " + roomNumber + " out of bounds returning -1")
+        // console.log("getFloor(): room number " + roomNumber + " out of bounds returning -1")
         return -1;
 
     }
@@ -758,7 +725,7 @@ function getFloor(roomNumber){
         case 4:
             return 4;
         default:
-            console.log("getFloor(): room number " + roomNumber + " not matching case returning -1")
+            // console.log("getFloor(): room number " + roomNumber + " not matching case returning -1")
             return -1;
 
     }

@@ -3,7 +3,6 @@ class Floor{
         this.number = number;
     }
     travelPoints = [];//array of points
-    stairPoints = [];
     destinations = [];
 }
 // Will be where you can go
@@ -843,15 +842,15 @@ function redraw() {
         context.lineWidth = '5';
         context.strokeRect(0 - cameraX, 0 - cameraY, image[currentFloor-1].width, image[currentFloor-1].height);
         floor = floors[currentFloor-1];
-        for(let i = 0; i < floor.destinations.length; i++){
-            let dest = floor.destinations[i];
-            context.fillStyle = 'red'
-            context.fillText(dest.number, dest.x - cameraX - 5, dest.y - cameraY - 2)
-            context.beginPath();
-            context.arc(dest.x-.5 - cameraX, dest.y-.5 - cameraY, 2, 0, 2* Math.PI, false);
-            context.fill();
-            context.closePath();
-        }
+        // for(let i = 0; i < floor.destinations.length; i++){
+        //     let dest = floor.destinations[i];
+        //     context.fillStyle = 'red'
+        //     context.fillText(dest.number, dest.x - cameraX - 5, dest.y - cameraY - 2)
+        //     context.beginPath();
+        //     context.arc(dest.x-.5 - cameraX, dest.y-.5 - cameraY, 2, 0, 2* Math.PI, false);
+        //     context.fill();
+        //     context.closePath();
+        // }
         for(let i = 0; i < floor.travelPoints.length; i++){
             let point = floor.travelPoints[i];
             if(point === selectedPoint){
@@ -884,9 +883,9 @@ function redraw() {
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.fillStyle = 'white';
         context.font = "16px Calibri";
-        context.fillRect(760, 10, 400, 100);
+        // context.fillRect(760, 10, 400, 100);
         context.fillStyle = 'black';
-        context.fillText("cameraX: " + Math.round(cameraX) + ", cameraY: " + Math.round(cameraY) + ", zoomLevel: " + zoomLevel, 800, 20);
+        // context.fillText("cameraX: " + Math.round(cameraX) + ", cameraY: " + Math.round(cameraY) + ", zoomLevel: " + zoomLevel, 800, 20);
         var mode;
         switch(placeMode){
             case 1:
@@ -899,10 +898,10 @@ function redraw() {
                 mode = "Stair points";
                 break;
         }
-        context.fillText("mode is " + mode, 800, 40);
-        context.fillText("cursorX: " + Math.round(lastMouseX / zoomLevel + cameraX) + ", cursorY: " + Math.round(lastMouseY / zoomLevel + cameraY), 800, 60);
-        context.fillText("room index: " + curRoomIndex, 900, 80);
-        requestAnimationFrame(redraw);
+        // context.fillText("mode is " + mode, 800, 40);
+        // context.fillText("cursorX: " + Math.round(lastMouseX / zoomLevel + cameraX) + ", cursorY: " + Math.round(lastMouseY / zoomLevel + cameraY), 800, 60);
+        // context.fillText("room index: " + curRoomIndex, 900, 80);
+        // requestAnimationFrame(redraw);
     }
 
 }
